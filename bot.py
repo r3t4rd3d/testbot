@@ -2,6 +2,21 @@
 from disco.bot import Bot, Plugin
 import datetime
 
+autorID = 165778877354868737
+def verify(msg):
+	content = msg.content
+	mentions = list(msg.mentions.values())
+
+	if content == "!verify" and msg.author.id == autorID:
+		msg.reply('Hello creator!')
+
+	elif content.startswith("!taunt"):
+		target = msg.author.id
+		if len(mentions) > 0:
+			target = mentions[0].id
+
+		msg.reply('<@{}> is a faggot!'.format(target))
+
 class SimplePlugin(Plugin):
 	#@Plugin.listen('ChannelCreate')
 	#def on_channel_create(self, event):
@@ -10,15 +25,16 @@ class SimplePlugin(Plugin):
 	# default message listener
 	@Plugin.listen('MessageCreate')
 	def message_send(self, msg):
+		verify(msg)
 		timestamp = msg.timestamp.fget().strftime('%Y-%m-%dT%H:%M:%S')
-		output = "[" + timestamp + "]," + msg.author.username + " :" + msg.content
+		output = "[" + timestamp + "]," + msg.author.username + ":" + msg.content
 		print output
 
 	# message update listener
 	@Plugin.listen('MessageUpdate')
 	def message_update(self, msg):
 		timestamp = msg.edited_timestamp.fget().strftime('%Y-%m-%dT%H:%M:%S')
-		output = "[" + timestamp + "]E," + msg.author.username + " :" + msg.content
+		output = "[" + timestamp + "]E," + msg.author.username + ":" + msg.content
 		print output
 
 	@Plugin.command('ping')
