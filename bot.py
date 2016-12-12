@@ -31,6 +31,8 @@ class SimplePlugin(Plugin):
 	@Plugin.listen('MessageCreate')
 	def message_send(self, msg):
 		verify(msg)
+		if msg.channel.is_dm:
+			print "{}: {}".format(msg.author.username, msg.content)
 		#perms = msg.guild.get_permissions(msg.author).to_dict()
 		#for key,value in perms.items():
 		#	print "{}:{}".format(key,value)
@@ -40,7 +42,7 @@ class SimplePlugin(Plugin):
 
 	@Plugin.listen('MessageUpdate')
 	def message_updated(self, msg):
-		output = "<@{}> edited message in <#{}>: {}".format(msg.author.id, msg.channel_id,msg.content)
+		output = "<@{}> edited message in <#{}>: {}".format(msg.author.id, msg.channel_id, msg.content)
 		#print output
 		if msg.guild is not None:
 			logchannel = self.logger.getChannel(msg.guild.id)
@@ -53,10 +55,12 @@ class SimplePlugin(Plugin):
 		output = "Message deleted in: <#{}>".format(event.channel_id)
 		#print output
 		server = self.state.channels[event.channel_id].guild
+
 		if server is not None:
 			logchannel = self.logger.getChannel(server.id)
 			if logchannel is not None:
-				server.channels[logchannel].send_message(output)
+				if logchannel != event.channel_id:
+					server.channels[logchannel].send_message(output)
 
 	@Plugin.command('ping')
 	def on_ping_command(self, event):
@@ -64,17 +68,22 @@ class SimplePlugin(Plugin):
 
 	@Plugin.command('log', '<switch:int>')
 	def on_log(self, event, switch):
-		perms = event.msg.guild.get_permissions(event.msg.author)
-		#print perms.can(Permissions.ADMINISTRATOR)
-		if perms.can(Permissions.ADMINISTRATOR):
-			serverid = event.msg.guild.id
-			channelid = event.msg.channel_id
-			if switch > 0:
-				self.logger.update(serverid, channelid)
-				event.msg.reply("Logging to this channel")
+		try:
+			perms = event.msg.guild.get_permissions(event.msg.author)
+			#print perms.can(Permissions.ADMINISTRATOR)
+			if perms.can(Permissions.ADMINISTRATOR):
+				serverid = event.msg.guild.id
+				channelid = event.msg.channel_id
+				if switch > 0:
+					self.logger.update(serverid, channelid)
+					event.msg.reply("Logging to this channel")
+				else:
+					event.msg.reply("Server logging disabled")
+					self.logger.update(serverid, 0)
 			else:
-				event.msg.reply("Server logging disabled")
-				self.logger.update(serverid, 0)
+				event.msg.reply("<@{}> This command requires admin permissions!".format(event.msg.author.id))
+		except AttributeError:
+			 event.msg.reply("This command can't be used in dms!")
 
 	@Plugin.command('info', '<query:str...>')
 	def on_info(self, event, query):
