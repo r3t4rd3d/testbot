@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 from disco.bot import Bot, Plugin
+from disco.types.permissions import PermissionValue, Permissions, Permissible
 import datetime
+from Logger import Logger
 
 autorID = 165778877354868737
 def verify(msg):
@@ -10,6 +12,9 @@ def verify(msg):
 	if content == "!verify" and msg.author.id == autorID:
 		msg.reply('Hello creator!')
 
+	elif content == "!github":
+		msg.reply('https://github.com/r3t4rd3d/testbot')
+
 	elif content.startswith("!taunt"):
 		target = msg.author.id
 		if len(mentions) > 0:
@@ -18,28 +23,58 @@ def verify(msg):
 		msg.reply('<@{}> is a faggot!'.format(target))
 
 class SimplePlugin(Plugin):
-	#@Plugin.listen('ChannelCreate')
-	#def on_channel_create(self, event):
-	#	event.channel.send_message('Nice channel m8!')
+	def __init__(self, bot, config):
+		super(SimplePlugin, self).__init__(bot, config)
+		self.logger = Logger()
 
 	# default message listener
 	@Plugin.listen('MessageCreate')
 	def message_send(self, msg):
 		verify(msg)
-		timestamp = msg.timestamp.fget().strftime('%Y-%m-%dT%H:%M:%S')
-		output = "[" + timestamp + "]," + msg.author.username + ":" + msg.content
-		print output
+		#perms = msg.guild.get_permissions(msg.author).to_dict()
+		#for key,value in perms.items():
+		#	print "{}:{}".format(key,value)
+		#timestamp = msg.timestamp.fget().strftime('%Y-%m-%dT%H:%M:%S')
+		#output = "[" + timestamp + "]," + msg.author.username + ":" + msg.content
+		#print output
 
-	# message update listener
 	@Plugin.listen('MessageUpdate')
-	def message_update(self, msg):
-		timestamp = msg.edited_timestamp.fget().strftime('%Y-%m-%dT%H:%M:%S')
-		output = "[" + timestamp + "]E," + msg.author.username + ":" + msg.content
-		print output
+	def message_updated(self, msg):
+		output = "<@{}> edited message in <#{}>: {}".format(msg.author.id, msg.channel_id,msg.content)
+		#print output
+		if msg.guild is not None:
+			logchannel = self.logger.getChannel(msg.guild.id)
+			if logchannel is not None:
+				msg.guild.channels[logchannel].send_message(output)
+
+	@Plugin.listen('MessageDelete')
+	def message_update(self, event):
+		#print event.id
+		output = "Message deleted in: <#{}>".format(event.channel_id)
+		#print output
+		server = self.state.channels[event.channel_id].guild
+		if server is not None:
+			logchannel = self.logger.getChannel(server.id)
+			if logchannel is not None:
+				server.channels[logchannel].send_message(output)
 
 	@Plugin.command('ping')
 	def on_ping_command(self, event):
 		event.msg.reply('Stop pinging me!')
+
+	@Plugin.command('log', '<switch:int>')
+	def on_log(self, event, switch):
+		perms = event.msg.guild.get_permissions(event.msg.author)
+		#print perms.can(Permissions.ADMINISTRATOR)
+		if perms.can(Permissions.ADMINISTRATOR):
+			serverid = event.msg.guild.id
+			channelid = event.msg.channel_id
+			if switch > 0:
+				self.logger.update(serverid, channelid)
+				event.msg.reply("Logging to this channel")
+			else:
+				event.msg.reply("Server logging disabled")
+				self.logger.update(serverid, 0)
 
 	@Plugin.command('info', '<query:str...>')
 	def on_info(self, event, query):
