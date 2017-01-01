@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 from disco.bot import Bot, Plugin
 from disco.types.permissions import PermissionValue, Permissions, Permissible
+import disco.types.message
 import datetime
 from Logger import Logger
 
@@ -14,6 +15,14 @@ def verify(msg):
 
 	elif content == "!github":
 		msg.reply('https://github.com/r3t4rd3d/testbot')
+
+	elif content == "!test":
+		embed = disco.types.message.MessageEmbed()
+		embed.title = 'Test!'
+		embed.description = 'extensive testing'
+		embed.color = int("D3262E", 16)
+		print embed.to_dict()
+		msg.reply('', embed=embed)
 
 	elif content.startswith("!taunt"):
 		target = msg.author.id
@@ -42,12 +51,14 @@ class SimplePlugin(Plugin):
 
 	@Plugin.listen('MessageUpdate')
 	def message_updated(self, msg):
-		output = "<@{}> edited message in <#{}>: {}".format(msg.author.id, msg.channel_id, msg.content)
-		#print output
-		if msg.guild is not None:
-			logchannel = self.logger.getChannel(msg.guild.id)
-			if logchannel is not None:
-				msg.guild.channels[logchannel].send_message(output)
+		#print bool(msg.author.id)
+		if bool(msg.author.id):
+			output = "<@{}> edited message in <#{}>: {}".format(msg.author.id, msg.channel_id, msg.content)
+			#print output
+			if msg.guild is not None:
+				logchannel = self.logger.getChannel(msg.guild.id)
+				if logchannel is not None:
+					msg.guild.channels[logchannel].send_message(output)
 
 	@Plugin.listen('MessageDelete')
 	def message_update(self, event):
