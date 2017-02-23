@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import os.path
+import json
 
 CONFIG_FILE = "config"
 class Logger:
@@ -13,35 +14,55 @@ class Logger:
 			f = open(CONFIG_FILE, "r")
 
 		self.channels = {}
-		lines = f.read().splitlines();
-		for line in lines:
-			channel = line.split(",")
-			if len(channel) == 2:
-				self.channels[int(channel[0])] = int(channel[1])
+		# init msg queues here
+		# queue is a dict of msg ids
+
+		try:
+			self.channels = json.load(f, parse_int=int())
+		except ValueError:
+			print "Can't parse config!"
 
 		f.close()
 		#print self.channels
 
-	def update(self, server, channel):
-		if channel != 0:
-			self.channels[server] = channel
-		else:
-			if self.channels.has_key(server):
-				del self.channels[server]
+	def updateLog(self, server, logchannel):
+		server = str(server)
+		logchannel = int(logchannel)
+		if not self.channels.has_key(server):
+			self.channels[server] = [0]
+		self.channels[server][0] = logchannel
 		# rewrite channels file
-		self.writeDict()
+		self.writeConfig()
 
-	def writeDict(self):
+	def ignoreChannel(self, server, channel):
+		server = str(server)
+		channel = int(channel)
+		try:
+			index = self.channels[server][1:].index(channel)
+			del self.channels[server][index + 1]
+			self.writeConfig()
+			return False
+		except ValueError:
+			self.channels[server].append(channel)
+			self.writeConfig()
+			return True
+
+	def writeConfig(self):
 		with open(CONFIG_FILE, "w") as config_file:
-			for key,value in self.channels.items():
-				line = "{},{}\n".format(key,value)
-				config_file.write(line)
+			json.dump(self.channels, config_file)
+			#for key,value in self.channels.items():
+			#	line = "{},{}\n".format(key,value)
+			#	config_file.write(line)
 
-	def getChannel(self, server):
+	def getLogChannel(self, server):
+		server = str(server)
 		if self.channels.has_key(server):
-			return self.channels[server]
+			return self.channels[server][0]
 		else:
 			return None
 
 if __name__ == "__main__":
 	l = Logger()
+	l.updateLog(10,20)
+	l.ignoreChannel(10,30)
+	#l.writeConfig()

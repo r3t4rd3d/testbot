@@ -4,6 +4,7 @@ from disco.types.permissions import PermissionValue, Permissions, Permissible
 import disco.types.message
 import datetime
 from Logger import Logger
+from History import History
 
 autorID = 165778877354868737
 def verify(msg):
@@ -23,6 +24,9 @@ def verify(msg):
 		embed.color = int("D3262E", 16)
 		print embed.to_dict()
 		msg.reply('', embed=embed)
+		#test history object
+		#htest = History(msg.channel)
+
 
 	elif content.startswith("!taunt"):
 		target = msg.author.id
@@ -35,6 +39,7 @@ class SimplePlugin(Plugin):
 	def __init__(self, bot, config):
 		super(SimplePlugin, self).__init__(bot, config)
 		self.logger = Logger()
+
 
 	# default message listener
 	@Plugin.listen('MessageCreate')
@@ -56,22 +61,21 @@ class SimplePlugin(Plugin):
 			output = "<@{}> edited message in <#{}>: {}".format(msg.author.id, msg.channel_id, msg.content)
 			#print output
 			if msg.guild is not None:
-				logchannel = self.logger.getChannel(msg.guild.id)
+				logchannel = self.logger.getLogChannel(msg.guild.id)
 				if logchannel is not None:
 					msg.guild.channels[logchannel].send_message(output)
 
 	@Plugin.listen('MessageDelete')
-	def message_update(self, event):
+	def message_delete(self, event):
 		#print event.id
 		output = "Message deleted in: <#{}>".format(event.channel_id)
 		#print output
 		server = self.state.channels[event.channel_id].guild
 
 		if server is not None:
-			logchannel = self.logger.getChannel(server.id)
-			if logchannel is not None:
-				if logchannel != event.channel_id:
-					server.channels[logchannel].send_message(output)
+			logchannel = self.logger.getLogChannel(server.id)
+			if logchannel is not None and logchannel !=0:
+				server.channels[logchannel].send_message(output)
 
 	@Plugin.command('ping')
 	def on_ping_command(self, event):
@@ -86,11 +90,11 @@ class SimplePlugin(Plugin):
 				serverid = event.msg.guild.id
 				channelid = event.msg.channel_id
 				if switch > 0:
-					self.logger.update(serverid, channelid)
 					event.msg.reply("Logging to this channel")
+					self.logger.updateLog(serverid, channelid)
 				else:
 					event.msg.reply("Server logging disabled")
-					self.logger.update(serverid, 0)
+					self.logger.updateLog(serverid, 0)
 			else:
 				event.msg.reply("<@{}> This command requires admin permissions!".format(event.msg.author.id))
 		except AttributeError:
