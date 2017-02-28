@@ -8,13 +8,13 @@ class History:
 		self.messages = {}
 		self.age = deque()
 
-		message_iterator = channel.messages_iter(chunk_size = MAX_DEPTH)
-		for i in range(1, MAX_DEPTH):
-			try:
-				message = message_iterator.next()
+		message_iterator = channel.messages_iter(bulk=True, chunk_size = MAX_DEPTH)
+		try:
+			messages = message_iterator.next()
+			for message in messages:
 				self.addMessage(message)
-			except StopIteration:
-				break
+		except StopIteration:
+			pass
 		
 	def addMessage(self, message):
 		self.messages[message.id] = message
@@ -22,6 +22,10 @@ class History:
 		if len(self.age) > MAX_DEPTH:
 			oldID = self.age.popleft()
 			del self.messages[oldID]
+
+	def updateMessage(self, message):
+		if message.id in self.messages:
+			self.messages[message.id] = message
 
 	def dereference(self, index):
 		return self.messages[self.age[index]]

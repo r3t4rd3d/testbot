@@ -18,14 +18,15 @@ def verify(msg):
 		msg.reply('https://github.com/r3t4rd3d/testbot')
 
 	elif content == "!test":
-		embed = disco.types.message.MessageEmbed()
-		embed.title = 'Test!'
-		embed.description = 'extensive testing'
-		embed.color = int("D3262E", 16)
-		print embed.to_dict()
-		msg.reply('', embed=embed)
+		#embed = disco.types.message.MessageEmbed()
+		#embed.title = 'Test!'
+		#embed.description = 'extensive testing'
+		#embed.color = int("D3262E", 16)
+		#print embed.to_dict()
+		htest = History(msg.channel)
+		text = '```{}```'.format(htest.dereference(0).to_dict())
+		msg.reply(text)
 		#test history object
-		#htest = History(msg.channel)
 
 
 	elif content.startswith("!taunt"):
@@ -38,8 +39,19 @@ def verify(msg):
 class SimplePlugin(Plugin):
 	def __init__(self, bot, config):
 		super(SimplePlugin, self).__init__(bot, config)
+		#print self.state.guilds
 		self.logger = Logger()
 
+	@Plugin.listen('GuildCreate')
+	def guild_init(self, event):
+		#print event.guild.channels
+		guild = event.guild
+		print 'Building message history for guild:{}'.format(event.guild.id)
+		self.logger.addGuild(guild)
+		#try:
+		#	print self.logger.histories[guild.id][230144298191028225].dereference(0).to_dict()
+		#except KeyError:
+		#	print "Key Error!"
 
 	# default message listener
 	@Plugin.listen('MessageCreate')
@@ -47,6 +59,8 @@ class SimplePlugin(Plugin):
 		verify(msg)
 		if msg.channel.is_dm:
 			print "{}: {}".format(msg.author.username, msg.content)
+
+		self.logger.addMessage(msg)
 		#perms = msg.guild.get_permissions(msg.author).to_dict()
 		#for key,value in perms.items():
 		#	print "{}:{}".format(key,value)
@@ -56,26 +70,42 @@ class SimplePlugin(Plugin):
 
 	@Plugin.listen('MessageUpdate')
 	def message_updated(self, msg):
-		#print bool(msg.author.id)
-		if bool(msg.author.id):
-			output = "<@{}> edited message in <#{}>: {}".format(msg.author.id, msg.channel_id, msg.content)
-			#print output
-			if msg.guild is not None:
+		#output = "<@{}> edited message in <#{}>: {}".format(msg.author.id, msg.channel_id, msg.content)
+		if msg.guild is not None:
+			try:
 				logchannel = self.logger.getLogChannel(msg.guild.id)
-				if logchannel is not None:
-					msg.guild.channels[logchannel].send_message(output)
+				msg_old = self.logger.histories[msg.guild.id][msg.channel.id].getMessage(msg.id)
+				embed = disco.types.message.MessageEmbed()
+				embed.title = 'Message updated in: #{}'.format(msg.channel.name)
+				embed.color = int("1388D6", 16)
+				embed.type = 'fields'
+				embed.add_field(name = '{} old:'.format(msg.author.username), value = msg_old.content)
+				embed.add_field(name = 'new:', value = msg.content)
+
+				msg.guild.channels[logchannel].send_message('', embed = embed)
+				self.logger.updateMessage(msg)
+			except KeyError:
+				pass
 
 	@Plugin.listen('MessageDelete')
 	def message_delete(self, event):
 		#print event.id
-		output = "Message deleted in: <#{}>".format(event.channel_id)
-		#print output
-		server = self.state.channels[event.channel_id].guild
+		channel = self.state.channels[event.channel_id]
+		server = channel.guild
 
 		if server is not None:
 			logchannel = self.logger.getLogChannel(server.id)
-			if logchannel is not None and logchannel !=0:
-				server.channels[logchannel].send_message(output)
+			try:
+				output = "Message deleted in: #{}".format(channel.name)
+				embed = disco.types.message.MessageEmbed()
+				embed.title = output
+				embed.color = int("D3262E", 16)
+				embed.type = 'fields'
+				message = self.logger.histories[server.id][channel.id].getMessage(event.id)
+				embed.add_field(name = message.author.username, value = message.content)
+				server.channels[logchannel].send_message('', embed = embed)
+			except KeyError:
+				pass
 
 	@Plugin.command('ping')
 	def on_ping_command(self, event):

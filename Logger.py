@@ -2,6 +2,7 @@
 
 import os.path
 import json
+from History import History
 
 CONFIG_FILE = "config"
 class Logger:
@@ -16,6 +17,7 @@ class Logger:
 		self.channels = {}
 		# init msg queues here
 		# queue is a dict of msg ids
+		self.histories = {}
 
 		try:
 			self.channels = json.load(f, parse_int=int())
@@ -60,6 +62,28 @@ class Logger:
 			return self.channels[server][0]
 		else:
 			return None
+
+	def addGuild(self, guild):
+		self.histories[guild.id] = {}
+		ch_histories = self.histories[guild.id]
+		for channel in guild.channels.values():
+			ch_histories[channel.id] = History(channel)
+
+	def addMessage(self, msg):
+		channel_id = msg.channel_id
+		guild_id = msg.guild.id
+		try:
+			self.histories[guild_id][channel_id].addMessage(msg)
+		except KeyError:
+			pass
+
+	def updateMessage(self, msg):
+		channel_id = msg.channel_id
+		guild_id = msg.guild.id
+		try:
+			self.histories[guild_id][channel_id].updateMessage(msg)
+		except KeyError:
+			pass
 
 if __name__ == "__main__":
 	l = Logger()
