@@ -60,7 +60,9 @@ class SimplePlugin(Plugin):
 		if msg.channel.is_dm:
 			print "{}: {}".format(msg.author.username, msg.content)
 
-		self.logger.addMessage(msg)
+		# ignore bot messages
+		if bool(msg.author.id):
+			self.logger.addMessage(msg)
 		#perms = msg.guild.get_permissions(msg.author).to_dict()
 		#for key,value in perms.items():
 		#	print "{}:{}".format(key,value)
@@ -71,6 +73,10 @@ class SimplePlugin(Plugin):
 	@Plugin.listen('MessageUpdate')
 	def message_updated(self, msg):
 		#output = "<@{}> edited message in <#{}>: {}".format(msg.author.id, msg.channel_id, msg.content)
+		#print msg.to_dict()
+		# ignore bot message
+		if not bool(msg.author.id):
+			return
 		if msg.guild is not None:
 			try:
 				logchannel = self.logger.getLogChannel(msg.guild.id)
@@ -93,6 +99,9 @@ class SimplePlugin(Plugin):
 		channel = self.state.channels[event.channel_id]
 		server = channel.guild
 
+		# ignore bot messages
+		if not bool(msg.author.id):
+			return
 		if server is not None:
 			logchannel = self.logger.getLogChannel(server.id)
 			try:
