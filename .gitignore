@@ -1,4 +1,5 @@
 .*
 !.gitignore
 config
+botconfig.json
 *.pyc

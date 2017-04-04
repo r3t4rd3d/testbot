@@ -48,6 +48,7 @@ class SimplePlugin(Plugin):
 		guild = event.guild
 		print 'Building message history for guild:{}'.format(event.guild.id)
 		self.logger.addGuild(guild)
+		print 'Done!'
 		#try:
 		#	print self.logger.histories[guild.id][230144298191028225].dereference(0).to_dict()
 		#except KeyError:
@@ -80,16 +81,16 @@ class SimplePlugin(Plugin):
 		if msg.guild is not None:
 			try:
 				logchannel = self.logger.getLogChannel(msg.guild.id)
-				msg_old = self.logger.histories[msg.guild.id][msg.channel.id].getMessage(msg.id)
+				msg_old = self.logger.histories[msg.guild.id][msg.channel.id].getContent(msg.id)
+				self.logger.updateMessage(msg)
 				embed = disco.types.message.MessageEmbed()
 				embed.title = 'Message updated in: #{}'.format(msg.channel.name)
 				embed.color = int("1388D6", 16)
 				embed.type = 'fields'
-				embed.add_field(name = '{} old:'.format(msg.author.username), value = msg_old.content)
+				embed.add_field(name = '{} old:'.format(msg.author.username), value = msg_old)
 				embed.add_field(name = 'new:', value = msg.content)
 
 				msg.guild.channels[logchannel].send_message('', embed = embed)
-				self.logger.updateMessage(msg)
 			except KeyError:
 				pass
 
@@ -100,8 +101,8 @@ class SimplePlugin(Plugin):
 		server = channel.guild
 
 		# ignore bot messages
-		if not bool(msg.author.id):
-			return
+		#if not bool(msg.author.id):
+		#	return
 		if server is not None:
 			logchannel = self.logger.getLogChannel(server.id)
 			try:

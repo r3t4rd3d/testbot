@@ -1,0 +1,2 @@
+#!/bin/bash
+python -m disco.cli --config="botconfig.json" --run-bot --plugin bot
