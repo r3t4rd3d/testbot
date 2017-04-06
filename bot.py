@@ -63,7 +63,11 @@ class SimplePlugin(Plugin):
 
 		# ignore bot messages
 		if bool(msg.author.id):
-			self.logger.addMessage(msg)
+			# ingore dms
+			try:
+				self.logger.addMessage(msg)
+			except AttributeError:
+				pass
 		#perms = msg.guild.get_permissions(msg.author).to_dict()
 		#for key,value in perms.items():
 		#	print "{}:{}".format(key,value)
@@ -112,6 +116,11 @@ class SimplePlugin(Plugin):
 				embed.color = int("D3262E", 16)
 				embed.type = 'fields'
 				message = self.logger.histories[server.id][channel.id].getMessage(event.id)
+
+				# ingore embed only messages
+				if not bool(message.content):
+					return
+
 				embed.add_field(name = message.author.username, value = message.content)
 				server.channels[logchannel].send_message('', embed = embed)
 			except KeyError:
