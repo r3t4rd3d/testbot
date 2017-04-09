@@ -2,6 +2,7 @@
 
 import os.path
 import json
+from collections import defaultdict
 from History import History
 
 CONFIG_FILE = "config"
@@ -14,10 +15,10 @@ class Logger:
 		else:
 			f = open(CONFIG_FILE, "r")
 
-		self.channels = {}
+		self.channels = defaultdict(list)
 		# init msg queues here
 		# queue is a dict of msg ids
-		self.histories = {}
+		self.histories = defaultdict(dict)
 
 		try:
 			self.channels = json.load(f, parse_int=int())
@@ -30,8 +31,8 @@ class Logger:
 	def updateLog(self, server, logchannel):
 		server = str(server)
 		logchannel = int(logchannel)
-		if not self.channels.has_key(server):
-			self.channels[server] = [0]
+		#if not self.channels.has_key(server):
+		#	self.channels[server] = [0]
 		self.channels[server][0] = logchannel
 		# rewrite channels file
 		self.writeConfig()
@@ -64,9 +65,9 @@ class Logger:
 			return None
 
 	def addGuild(self, guild):
-		self.histories[guild.id] = {}
+		#self.histories[guild.id] = {}
 		ch_histories = self.histories[guild.id]
-		for channel in guild.channels.values():
+		for channel in guild.channels.itervalues():
 			ch_histories[channel.id] = History(channel)
 
 	def addMessage(self, msg):
