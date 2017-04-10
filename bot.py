@@ -9,6 +9,7 @@ from Logger import Logger
 from History import History
 
 autorID = 165778877354868737
+taunts = ['is a faggot', 'is the coolest person on the planet', 'isn\'t worth my CPU time']
 def verify(msg):
 	content = msg.content
 	mentions = list(msg.mentions.values())
@@ -19,24 +20,15 @@ def verify(msg):
 	elif content == "!github":
 		msg.reply('https://github.com/r3t4rd3d/testbot')
 
-	elif content == "!test":
-		#embed = disco.types.message.MessageEmbed()
-		#embed.title = 'Test!'
-		#embed.description = 'extensive testing'
-		#embed.color = int("D3262E", 16)
-		#print embed.to_dict()
-		htest = History(msg.channel)
-		text = '```{}```'.format(htest.dereference(0).to_dict())
-		msg.reply(text)
-		#test history object
-
+	elif content == '!help':
+		msg.reply("**HELP**\n*!taunt [@user]*\n`Taunt user`\n")
 
 	elif content.startswith("!taunt"):
 		target = msg.author.id
 		if len(mentions) > 0:
 			target = mentions[0].id
 
-		msg.reply('<@{}> is a faggot!'.format(target))
+		msg.reply('<@{}> {}!'.format(target, random.choice(taunts)))
 
 s_names = ['dank memes', 'NSA', 'generating memes', 'always watching', 'nothing', 'GVIM', '421-1', '910+1']
 game = Game()
