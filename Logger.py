@@ -76,14 +76,17 @@ class Logger:
 			self.histories[guild_id][channel_id].addMessage(msg)
 		except KeyError:
 			pass
+	
+	def getHistory(self, guild_id, channel_id):
+		if channel_id not in self.channels[str(guild_id)][1:]:
+			return self.histories[guild_id][channel_id]
+		else:
+			raise KeyError()
 
 	def updateMessage(self, msg):
 		channel_id = msg.channel_id
 		guild_id = msg.guild.id
-		try:
-			self.histories[guild_id][channel_id].updateMessage(msg)
-		except KeyError:
-			pass
+		self.getHistory(guild_id, channel_id).updateMessage(msg)
 
 if __name__ == "__main__":
 	l = Logger()

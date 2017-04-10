@@ -2,7 +2,7 @@
 from disco.bot import Bot, Plugin
 from disco.types.permissions import PermissionValue, Permissions, Permissible
 from disco.types.user import Game, GameType, Status
-import disco.types.message
+from disco.types.message import MessageEmbed
 import datetime
 import random
 from Logger import Logger
@@ -21,7 +21,13 @@ def verify(msg):
 		msg.reply('https://github.com/r3t4rd3d/testbot')
 
 	elif content == '!help':
-		msg.reply("**HELP**\n*!taunt [@user]*\n`Taunt user`\n")
+		embed = MessageEmbed()
+		embed.type = 'fields'
+		embed.title = 'HELP'
+		embed.add_field(name='*!taunt [@user]*', value='Taunt user')
+		embed.add_field(name='@KEKbot log <int>', value='Send log messages to the current channel if int > 0, logging is disabled if this condition is not true. [Requires admin permissions]')
+		embed.add_field(name='@KEKbot logignore', value='Ignore/Log channel. [Requires admin permissions]')
+		msg.reply('', embed=embed)
 
 	elif content.startswith("!taunt"):
 		target = msg.author.id
@@ -93,9 +99,10 @@ class SimplePlugin(Plugin):
 		if msg.guild is not None:
 			try:
 				logchannel = self.logger.getLogChannel(msg.guild.id)
-				msg_old = self.logger.histories[msg.guild.id][msg.channel.id].getContent(msg.id)
+				msg_old = self.logger.getHistory(msg.guild.id, msg.channel.id).getContent(msg.id)
 				self.logger.updateMessage(msg)
-				embed = disco.types.message.MessageEmbed()
+
+				embed = MessageEmbed()
 				embed.title = 'Message updated in: #{}'.format(msg.channel.name)
 				embed.color = int("1388D6", 16)
 				embed.type = 'fields'
@@ -120,7 +127,7 @@ class SimplePlugin(Plugin):
 			logchannel = self.logger.getLogChannel(server.id)
 			try:
 				output = "Message deleted in: #{}".format(channel.name)
-				embed = disco.types.message.MessageEmbed()
+				embed = MessageEmbed()
 				embed.title = output
 				embed.color = int("D3262E", 16)
 				embed.type = 'fields'
@@ -157,6 +164,25 @@ class SimplePlugin(Plugin):
 				event.msg.reply("<@{}> This command requires admin permissions!".format(event.msg.author.id))
 		except AttributeError:
 			 event.msg.reply("This command can't be used in dms!")
+
+	@Plugin.command('logignore')
+	def logignore(self, event):
+		try:
+			perms = event.msg.guild.get_permissions(event.msg.author)
+			if not perms.can(Permissions.ADMINISTRATOR):
+				event.msg.reply("<@{}> This command requires admin permissions!".format(event.msg.author.id))
+				return
+
+			guild_id = event.msg.guild.id
+			channel_id = event.msg.channel_id
+			ignore = self.logger.ignoreChannel(guild_id, channel_id)
+			if ignore:
+				event.msg.reply('Ignoring this channel')
+			else:
+				event.msg.reply('Logging channel messages')
+
+		except (AttributeError, KeyError):
+			pass
 
 	@Plugin.command('info', '<query:str...>')
 	def on_info(self, event, query):
