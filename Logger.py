@@ -41,11 +41,13 @@ class Logger:
 		server = str(server)
 		channel = int(channel)
 		try:
+			# check if channel is already on the ignore list
 			index = self.channels[server][1:].index(channel)
 			del self.channels[server][index + 1]
 			self.writeConfig()
 			return False
 		except ValueError:
+			# add channel to the ignore list
 			self.channels[server].append(channel)
 			self.writeConfig()
 			return True
@@ -53,22 +55,19 @@ class Logger:
 	def writeConfig(self):
 		with open(CONFIG_FILE, "w") as config_file:
 			json.dump(self.channels, config_file)
-			#for key,value in self.channels.items():
-			#	line = "{},{}\n".format(key,value)
-			#	config_file.write(line)
 
 	def getLogChannel(self, server):
 		server = str(server)
-		if self.channels.has_key(server):
-			return self.channels[server][0]
-		else:
-			return None
+		return self.channels[server][0]
 
 	def addGuild(self, guild):
 		#self.histories[guild.id] = {}
 		ch_histories = self.histories[guild.id]
 		for channel in guild.channels.itervalues():
-			ch_histories[channel.id] = History(channel)
+			try:
+				ch_histories[channel.id] = History(channel)
+			except:
+				pass
 
 	def addMessage(self, msg):
 		channel_id = msg.channel_id

@@ -91,7 +91,8 @@ class SimplePlugin(Plugin):
 				embed.title = 'Message updated in: #{}'.format(msg.channel.name)
 				embed.color = int("1388D6", 16)
 				embed.type = 'fields'
-				embed.add_field(name = '{} old:'.format(msg.author.username), value = msg_old)
+				embed.set_author(name = '{}:'.format(msg.author.username))
+				embed.add_field(name = 'old:', value = msg_old)
 				embed.add_field(name = 'new:', value = msg.content)
 
 				msg.guild.channels[logchannel].send_message('', embed = embed)
