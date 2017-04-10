@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 from disco.bot import Bot, Plugin
 from disco.types.permissions import PermissionValue, Permissions, Permissible
+from disco.types.user import Game, GameType, Status
 import disco.types.message
 import datetime
+import random
 from Logger import Logger
 from History import History
 
@@ -36,11 +38,25 @@ def verify(msg):
 
 		msg.reply('<@{}> is a faggot!'.format(target))
 
+s_names = ['dank memes', 'NSA', 'generating memes', 'always watching', 'nothing', 'GVIM', '421-1', '910+1']
+game = Game()
+game.type = GameType.DEFAULT
+
 class SimplePlugin(Plugin):
 	def __init__(self, bot, config):
 		super(SimplePlugin, self).__init__(bot, config)
 		#print self.state.guilds
 		self.logger = Logger()
+
+	@Plugin.listen('Ready')
+	def ready(self, event):
+		game.name = random.choice(s_names)
+		self.client.update_presence(game=game, status=Status.ONLINE)
+
+	@Plugin.schedule(interval=30, init=False)
+	def update_status(self):
+		game.name = random.choice(s_names)
+		self.client.update_presence(game=game, status=Status.ONLINE)
 
 	@Plugin.listen('GuildCreate')
 	def guild_init(self, event):
