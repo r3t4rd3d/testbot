@@ -8,34 +8,8 @@ import random
 from Logger import Logger
 from History import History
 
-autorID = 165778877354868737
+R3TID = 165778877354868737
 taunts = ['is a faggot', 'is the coolest person on the planet', 'isn\'t worth my CPU time']
-def verify(msg):
-	content = msg.content
-	mentions = list(msg.mentions.values())
-
-	if content == "!verify" and msg.author.id == autorID:
-		msg.reply('Hello creator!')
-
-	elif content == "!github":
-		msg.reply('https://github.com/r3t4rd3d/testbot')
-
-	elif content == '!help':
-		embed = MessageEmbed()
-		embed.type = 'fields'
-		embed.title = 'HELP'
-		embed.add_field(name='*!taunt [@user]*', value='Taunt user')
-		embed.add_field(name='@KEKbot log <int>', value='Send log messages to the current channel if int > 0, logging is disabled if this condition is not true. [Requires admin permissions]')
-		embed.add_field(name='@KEKbot logignore', value='Ignore/Log channel. [Requires admin permissions]')
-		msg.reply('', embed=embed)
-
-	elif content.startswith("!taunt"):
-		target = msg.author.id
-		if len(mentions) > 0:
-			target = mentions[0].id
-
-		msg.reply('<@{}> {}!'.format(target, random.choice(taunts)))
-
 s_names = ['dank memes', 'NSA', 'generating memes', 'always watching', 'nothing', 'GVIM', '421-1', '910+1']
 game = Game()
 game.type = GameType.DEFAULT
@@ -58,20 +32,13 @@ class SimplePlugin(Plugin):
 
 	@Plugin.listen('GuildCreate')
 	def guild_init(self, event):
-		#print event.guild.channels
 		guild = event.guild
-		print 'Building message history for guild:{}'.format(event.guild.id)
 		self.logger.addGuild(guild)
-		print 'Done!'
-		#try:
-		#	print self.logger.histories[guild.id][230144298191028225].dereference(0).to_dict()
-		#except KeyError:
-		#	print "Key Error!"
+		print 'Finished building message history for guild:{}'.format(event.guild.id)
 
 	# default message listener
 	@Plugin.listen('MessageCreate')
 	def message_send(self, msg):
-		verify(msg)
 		if msg.channel.is_dm:
 			print "{}: {}".format(msg.author.username, msg.content)
 
@@ -83,16 +50,10 @@ class SimplePlugin(Plugin):
 			except AttributeError:
 				pass
 		#perms = msg.guild.get_permissions(msg.author).to_dict()
-		#for key,value in perms.items():
-		#	print "{}:{}".format(key,value)
 		#timestamp = msg.timestamp.fget().strftime('%Y-%m-%dT%H:%M:%S')
-		#output = "[" + timestamp + "]," + msg.author.username + ":" + msg.content
-		#print output
 
 	@Plugin.listen('MessageUpdate')
 	def message_updated(self, msg):
-		#output = "<@{}> edited message in <#{}>: {}".format(msg.author.id, msg.channel_id, msg.content)
-		#print msg.to_dict()
 		# ignore bot message
 		if not bool(msg.author.id):
 			return
@@ -116,7 +77,6 @@ class SimplePlugin(Plugin):
 
 	@Plugin.listen('MessageDelete')
 	def message_delete(self, event):
-		#print event.id
 		channel = self.state.channels[event.channel_id]
 		server = channel.guild
 
@@ -142,26 +102,55 @@ class SimplePlugin(Plugin):
 			except KeyError:
 				pass
 
-	@Plugin.command('ping')
-	def on_ping_command(self, event):
-		event.msg.reply('Stop pinging me!')
+	@Plugin.command('github')
+	def on_cmd_github(self, event):
+		event.msg.reply('https://github.com/r3t4rd3d/testbot')
+
+	@Plugin.command('verify')
+	def on_cmd_verify(self, event):
+		if event.msg.author.id == R3TID:
+			event.msg.reply('Hello Creator!')
+
+	@Plugin.command('help')
+	def on_help(self, event):
+		embed = MessageEmbed()
+		embed.type = 'fields'
+		embed.title = 'HELP'
+		embed.add_field(name='!taunt [@user]', value='Taunt user')
+		embed.add_field(name='!log <int>', value='Send log messages to the current channel if int > 0, logging is disabled if this condition is not true. [Requires admin permissions]')
+		embed.add_field(name='!logignore', value='Ignore/Log channel. [Requires admin permissions]')
+
+		event.msg.reply('', embed=embed)
+
+	@Plugin.command('taunt')
+	def on_taunt(self, event):
+		msg = event.msg
+		target = msg.author
+		mentions = msg.mentions.values()
+		try:
+			target = next(mentions)
+		except StopIteration:
+			pass
+
+		msg.reply('{} {}!'.format(target.mention, random.choice(taunts)))
 
 	@Plugin.command('log', '<switch:int>')
 	def on_log(self, event, switch):
 		try:
 			perms = event.msg.guild.get_permissions(event.msg.author)
 			#print perms.can(Permissions.ADMINISTRATOR)
-			if perms.can(Permissions.ADMINISTRATOR):
-				serverid = event.msg.guild.id
-				channelid = event.msg.channel_id
-				if switch > 0:
-					event.msg.reply("Logging to this channel")
-					self.logger.updateLog(serverid, channelid)
-				else:
-					event.msg.reply("Server logging disabled")
-					self.logger.updateLog(serverid, 0)
-			else:
+			if not perms.can(Permissions.ADMINISTRATOR):
 				event.msg.reply("<@{}> This command requires admin permissions!".format(event.msg.author.id))
+				return
+
+			serverid = event.msg.guild.id
+			channelid = event.msg.channel_id
+			if switch > 0:
+				event.msg.reply("Logging to this channel")
+				self.logger.updateLog(serverid, channelid)
+			else:
+				event.msg.reply("Server logging disabled")
+				self.logger.updateLog(serverid, 0)
 		except AttributeError:
 			 event.msg.reply("This command can't be used in dms!")
 
