@@ -39,5 +39,8 @@ class History:
 	def getMessage(self, messageid):
 		return self.messages[messageid]
 
+	def __getitem__(self, key):
+		return self.messages[key]
+
 	def getContent(self, messageid):
 		return self.content[messageid]

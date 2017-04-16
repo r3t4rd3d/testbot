@@ -60,6 +60,9 @@ class Logger:
 		server = str(server)
 		return self.channels[server][0]
 
+	def __getitem__(self, key):
+		return self.getLogChannel(key)
+
 	def addGuild(self, guild):
 		#self.histories[guild.id] = {}
 		ch_histories = self.histories[guild.id]

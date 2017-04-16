@@ -11,8 +11,6 @@ from History import History
 R3TID = 165778877354868737
 taunts = ['is a faggot', 'is the coolest person on the planet', 'isn\'t worth my CPU time']
 s_names = ['dank memes', 'NSA', 'generating memes', 'always watching', 'nothing', 'GVIM', '421-1', '910+1']
-game = Game()
-game.type = GameType.DEFAULT
 
 class SimplePlugin(Plugin):
 	def __init__(self, bot, config):
@@ -22,12 +20,12 @@ class SimplePlugin(Plugin):
 
 	@Plugin.listen('Ready')
 	def ready(self, event):
-		game.name = random.choice(s_names)
+		game = Game(type=GameType.DEFAULT, name=random.choice(s_names))
 		self.client.update_presence(game=game, status=Status.ONLINE)
 
 	@Plugin.schedule(interval=30, init=False)
 	def update_status(self):
-		game.name = random.choice(s_names)
+		game = Game(type=GameType.DEFAULT, name=random.choice(s_names))
 		self.client.update_presence(game=game, status=Status.ONLINE)
 
 	@Plugin.listen('GuildCreate')
@@ -41,6 +39,7 @@ class SimplePlugin(Plugin):
 	def message_send(self, msg):
 		if msg.channel.is_dm:
 			print "{}: {}".format(msg.author.username, msg.content)
+			return
 
 		# ignore bot messages
 		if bool(msg.author.id):
@@ -54,22 +53,22 @@ class SimplePlugin(Plugin):
 
 	@Plugin.listen('MessageUpdate')
 	def message_updated(self, msg):
-		# ignore bot message
+		# ignore bot messages
 		if not bool(msg.author.id):
 			return
 		if msg.guild is not None:
 			try:
-				logchannel = self.logger.getLogChannel(msg.guild.id)
+				logchannel = self.logger[msg.guild.id]
 				msg_old = self.logger.getHistory(msg.guild.id, msg.channel.id).getContent(msg.id)
 				self.logger.updateMessage(msg)
 
 				embed = MessageEmbed()
-				embed.title = 'Message updated in: #{}'.format(msg.channel.name)
+				embed.title = 'Message updated in: **#{}**'.format(msg.channel.name)
+				embed.description = '**{}**\n***old:***\n{}\n***new:***\n{}'.format(msg.author.username, msg_old, msg.content)
 				embed.color = int("1388D6", 16)
-				embed.type = 'fields'
-				embed.set_author(name = '{}:'.format(msg.author.username))
-				embed.add_field(name = 'old:', value = msg_old)
-				embed.add_field(name = 'new:', value = msg.content)
+				#embed.set_author(name = '{}:'.format(msg.author.username))
+				#embed.add_field(name = 'old:', value = msg_old)
+				#embed.add_field(name = 'new:', value = msg.content)
 
 				msg.guild.channels[logchannel].send_message('', embed = embed)
 			except KeyError:
@@ -84,20 +83,19 @@ class SimplePlugin(Plugin):
 		#if not bool(msg.author.id):
 		#	return
 		if server is not None:
-			logchannel = self.logger.getLogChannel(server.id)
+			logchannel = self.logger[server.id]
 			try:
-				output = "Message deleted in: #{}".format(channel.name)
-				embed = MessageEmbed()
-				embed.title = output
-				embed.color = int("D3262E", 16)
-				embed.type = 'fields'
-				message = self.logger.histories[server.id][channel.id].getMessage(event.id)
-
+				message = self.logger.histories[server.id][channel.id][event.id]
 				# ingore embed only messages
 				if not bool(message.content):
 					return
 
-				embed.add_field(name = message.author.username, value = message.content)
+				embed = MessageEmbed()
+				embed.title = "Message deleted in: **#{}**".format(channel.name)
+				embed.description = '**{}**\n{}'.format(msg.author.username, message.content)
+				embed.color = int("D3262E", 16)
+				#embed.type = 'fields'
+				#embed.add_field(name = message.author.username, value = message.content)
 				server.channels[logchannel].send_message('', embed = embed)
 			except KeyError:
 				pass
@@ -110,6 +108,17 @@ class SimplePlugin(Plugin):
 	def on_cmd_verify(self, event):
 		if event.msg.author.id == R3TID:
 			event.msg.reply('Hello Creator!')
+
+	@Plugin.command('test')
+	def on_test(self, event):
+		if event.msg.author.id == R3TID:
+			msg = event.msg
+			embed = MessageEmbed()
+			embed.title = 'Message updated in: #{}'.format(msg.channel.name)
+			embed.description = '**{}**'.format(msg.author.username)
+			embed.color = int("1388D6", 16)
+
+			msg.reply('', embed=embed)
 
 	@Plugin.command('help')
 	def on_help(self, event):
