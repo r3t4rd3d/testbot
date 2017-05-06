@@ -12,11 +12,14 @@ R3TID = 165778877354868737
 taunts = ['is a faggot', 'is the coolest person on the planet', 'isn\'t worth my CPU time']
 s_names = ['dank memes', 'NSA', 'generating memes', 'always watching', 'nothing', 'GVIM', '421-1', '910+1']
 
-class SimplePlugin(Plugin):
-	def __init__(self, bot, config):
-		super(SimplePlugin, self).__init__(bot, config)
+class KekbotPlugin(Plugin):
+	def load(self, ctx):
+		super(KekbotPlugin, self).load(ctx)
 		#print self.state.guilds
 		self.logger = Logger()
+
+	def unload(self, ctx):
+		super(KekbotPlugin, self).unload(ctx)
 
 	@Plugin.listen('Ready')
 	def ready(self, event):
