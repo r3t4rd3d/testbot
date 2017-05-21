@@ -62,7 +62,7 @@ class KekbotPlugin(Plugin):
 		if msg.guild is not None:
 			try:
 				logchannel = self.logger[msg.guild.id]
-				msg_old = self.logger.getHistory(msg.guild.id, msg.channel.id).getContent(msg.id)
+				msg_old = self.logger.histories[msg.guild.id][msg.channel.id].getContent(msg.id)
 				self.logger.updateMessage(msg)
 
 				embed = MessageEmbed()
@@ -81,7 +81,6 @@ class KekbotPlugin(Plugin):
 	def message_delete(self, event):
 		channel = self.state.channels[event.channel_id]
 		server = channel.guild
-
 		# ignore bot messages
 		#if not bool(msg.author.id):
 		#	return
@@ -95,11 +94,12 @@ class KekbotPlugin(Plugin):
 
 				embed = MessageEmbed()
 				embed.title = "Message deleted in: **#{}**".format(channel.name)
-				embed.description = '**{}**\n{}'.format(msg.author.username, message.content)
+				embed.description = '**{}**\n{}'.format(message.author.username, message.content)
 				embed.color = int("D3262E", 16)
 				#embed.type = 'fields'
 				#embed.add_field(name = message.author.username, value = message.content)
 				server.channels[logchannel].send_message('', embed = embed)
+
 			except KeyError:
 				pass
 

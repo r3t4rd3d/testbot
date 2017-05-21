@@ -69,7 +69,8 @@ class Logger:
 		for channel in guild.channels.itervalues():
 			try:
 				ch_histories[channel.id] = History(channel)
-			except:
+			except Exception, err:
+				print 'failed to build history for:', err, channel.id, ' ', guild.id
 				pass
 
 	def addMessage(self, msg):
