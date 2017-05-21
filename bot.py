@@ -67,7 +67,7 @@ class KekbotPlugin(Plugin):
 
 				embed = MessageEmbed()
 				embed.title = 'Message updated in: **#{}**'.format(msg.channel.name)
-				embed.description = '**{}**\n***old:***\n{}\n***new:***\n{}'.format(msg.author.username, msg_old, msg.content)
+				embed.description = '**{}**\n***old:***\n{}\n***new:***\n{}'.format(msg.author.username.encode("ascii","ignore"), msg_old, msg.content)
 				embed.color = int("1388D6", 16)
 				#embed.set_author(name = '{}:'.format(msg.author.username))
 				#embed.add_field(name = 'old:', value = msg_old)
@@ -94,7 +94,7 @@ class KekbotPlugin(Plugin):
 
 				embed = MessageEmbed()
 				embed.title = "Message deleted in: **#{}**".format(channel.name)
-				embed.description = '**{}**\n{}'.format(message.author.username, message.content)
+				embed.description = '**{}**\n{}'.format(message.author.username.encode("ascii","ignore"), message.content)
 				embed.color = int("D3262E", 16)
 				#embed.type = 'fields'
 				#embed.add_field(name = message.author.username, value = message.content)
