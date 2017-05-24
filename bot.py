@@ -56,6 +56,9 @@ class KekbotPlugin(Plugin):
 				self.logger.addMessage(msg)
 			except AttributeError:
 				pass
+
+			if msg.content.lower() == 'ayy':
+				msg.reply('lmao')
 		#perms = msg.guild.get_permissions(msg.author).to_dict()
 		#timestamp = msg.timestamp.fget().strftime('%Y-%m-%dT%H:%M:%S')
 
