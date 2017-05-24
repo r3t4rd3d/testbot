@@ -62,7 +62,7 @@ class KekbotPlugin(Plugin):
 		if msg.guild is not None:
 			try:
 				logchannel = self.logger[msg.guild.id]
-				msg_old = self.logger.histories[msg.guild.id][msg.channel.id].getContent(msg.id)
+				msg_old = self.logger.getHistory(msg.guild.id, msg.channel.id).getContent(msg.id)
 				self.logger.updateMessage(msg)
 
 				embed = MessageEmbed()
@@ -87,7 +87,7 @@ class KekbotPlugin(Plugin):
 		if server is not None:
 			logchannel = self.logger[server.id]
 			try:
-				message = self.logger.histories[server.id][channel.id][event.id]
+				message = self.logger.getHistory(server.id, channel.id)[event.id]
 				# ingore embed only messages
 				if not bool(message.content):
 					return
