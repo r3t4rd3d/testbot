@@ -44,6 +44,7 @@ class Logger:
 			# check if channel is already on the ignore list
 			index = self.channels[server][1:].index(channel)
 			del self.channels[server][index + 1]
+			#del self.histories[server][channel]
 			self.writeConfig()
 			return False
 		except ValueError:
@@ -81,6 +82,9 @@ class Logger:
 		except KeyError:
 			pass
 	
+	def addChannel(self, channel):
+		self.histories[channel.guild_id][channel.id] = History(channel)
+
 	def getHistory(self, guild_id, channel_id):
 		if channel_id not in self.channels[str(guild_id)][1:]:
 			return self.histories[guild_id][channel_id]

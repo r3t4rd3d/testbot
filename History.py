@@ -11,9 +11,13 @@ class History:
 		self.content = {}
 		self.age = deque()
 
-		messages = channel.messages_iter(bulk=True, chunk_size = MAX_DEPTH).next()
-		for m in messages:
-			self.addMessage(m)
+		try:
+			messages = channel.messages_iter(bulk=True, chunk_size = MAX_DEPTH).next()
+			for m in messages:
+				self.addMessage(m)
+		except StopIteration:
+			# empty channels
+			pass
 
 	def addMessage(self, message):
 		self.messages[message.id] = message

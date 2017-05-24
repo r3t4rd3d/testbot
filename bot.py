@@ -34,8 +34,13 @@ class KekbotPlugin(Plugin):
 	@Plugin.listen('GuildCreate')
 	def guild_init(self, event):
 		guild = event.guild
+		print type(guild.id)
 		self.logger.addGuild(guild)
-		print 'Finished building message history for guild:{}'.format(event.guild.id)
+		print 'Finished building message history for guild: {}'.format(event.guild.id)
+
+	@Plugin.listen('ChannelCreate')
+	def channel_created(self, channel):
+		self.logger.addChannel(channel)
 
 	# default message listener
 	@Plugin.listen('MessageCreate')
